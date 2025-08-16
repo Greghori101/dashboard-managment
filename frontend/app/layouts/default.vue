@@ -12,15 +12,15 @@
 				<span class="text-2xl font-bold text-green-700 tracking-tight">DiData Dashboard</span>
 			</div>
 			<nav class="flex space-x-6">
-				<a
-					href="#features"
-					class="text-green-700 hover:underline font-medium"
-					>Features</a
+				<NuxtLink
+					to="/auth/login"
+					class="bg-green-700 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-green-800 transition"
+					>Login</NuxtLink
 				>
-				<a
-					href="#demo"
-					class="text-green-700 hover:underline font-medium"
-					>Demo</a
+				<NuxtLink
+					to="/auth/signup"
+					class="bg-white text-green-700 px-6 py-2 rounded-lg font-semibold shadow hover:bg-green-100 transition"
+					>Sign Up</NuxtLink
 				>
 			</nav>
 		</header>

@@ -12,16 +12,7 @@
 				<span class="text-2xl font-bold text-white tracking-tight">Dashboard</span>
 			</div>
 			<nav class="flex space-x-6">
-				<a
-					href="/"
-					class="text-white hover:underline font-medium"
-					>Home</a
-				>
-				<a
-					href="#"
-					class="text-white hover:underline font-medium"
-					>Settings</a
-				>
+				<ProfileAvatar/>
 			</nav>
 		</header>
 		<main class="flex-1">
