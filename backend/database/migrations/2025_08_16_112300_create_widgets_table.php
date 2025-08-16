@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('widgets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('version_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
             $table->enum('type', ['link', 'text']);
             $table->json('data');
+            $table->unsignedBigInteger('sort')->default(1);
             $table->timestamps();
         });
     }

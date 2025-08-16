@@ -14,6 +14,7 @@ class Widget extends Model
         'version_id',
         'type',
         'data',
+        'sort',
     ];
 
     protected $casts = [
