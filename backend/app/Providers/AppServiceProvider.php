@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Dashboard;
+use App\Policies\DashboardPolicy;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,5 +23,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        Gate::policy(Dashboard::class, DashboardPolicy::class);
     }
 }
