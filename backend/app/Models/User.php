@@ -52,7 +52,7 @@ class User extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
-        $url = env('APP_FRONT_URL') . '/password/reset/' . $token;
+        $url = env('APP_FRONT_URL') . '/auth/reset-password/' . $token;
         Mailer::to($this->email)->send(new ForgotPassword($this, $url));
     }
 }
