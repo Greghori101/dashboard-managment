@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { updateProfileSchema, type UpdateProfileInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
 
 definePageMeta({
@@ -7,16 +8,14 @@ definePageMeta({
 
 const auth = useAuthStore()
 
-const state = reactive({
+const form = reactive<UpdateProfileInput>({
 	name: auth.user?.name || "",
 	email: auth.user?.email || "",
 })
 
 async function updateProfile() {
-	const res = await auth.handleUpdateProfile({
-		name: state.name,
-		email: state.email,
-	})
+	const data = updateProfileSchema.parse(form)
+	const res = await auth.handleUpdateProfile(data)
 	if (res.success) {
 		console.log("Profile updated")
 	} else {
@@ -34,7 +33,7 @@ async function updateProfile() {
 			</template>
 
 			<UForm
-				:state="state"
+				:state="form"
 				@submit="updateProfile"
 				class="space-y-6"
 			>
@@ -49,7 +48,7 @@ async function updateProfile() {
 					>
 					<UInput
 						id="name"
-						v-model="state.name"
+						v-model="form.name"
 						placeholder="Enter your name"
 						class="w-full"
 					/>
@@ -66,7 +65,7 @@ async function updateProfile() {
 					>
 					<UInput
 						id="email"
-						v-model="state.email"
+						v-model="form.email"
 						type="email"
 						placeholder="Enter your email"
 						class="w-full"

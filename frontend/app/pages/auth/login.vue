@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { loginSchema, type LoginInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
 
 const auth = useAuthStore()
 
-const form = reactive({
+const form = reactive<LoginInput>({
 	email: "",
 	password: "",
 })
 
 async function submit() {
+	const data = loginSchema.parse(form)
+
 	const res = await auth.handleLogin(form)
 	if (res.success) {
 		navigateTo("/dashboard")

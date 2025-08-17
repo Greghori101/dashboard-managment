@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { changePasswordSchema, type ChangePasswordInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
 
 definePageMeta({
@@ -7,7 +8,7 @@ definePageMeta({
 
 const auth = useAuthStore()
 
-const form = reactive({
+const form = reactive<ChangePasswordInput>({
 	current_password: "",
 	new_password: "",
 	new_password_confirmation: "",
@@ -16,6 +17,7 @@ const form = reactive({
 const success = ref(false)
 
 async function submit() {
+	const data = changePasswordSchema.parse(form)
 	const res = await auth.changePassword(form)
 	if (res.success) {
 		success.value = true

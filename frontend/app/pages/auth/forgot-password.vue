@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import { forgotPasswordSchema, type ForgotPasswordInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
 
 const auth = useAuthStore()
 
-const form = reactive({
+const form = reactive<ForgotPasswordInput>({
 	email: "",
 })
 
 const success = ref(false)
 
 async function submit() {
+	const data = forgotPasswordSchema.parse(form)
+
 	const res = await auth.forgotPassword(form.email)
 	if (res.success) {
 		success.value = true

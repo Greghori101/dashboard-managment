@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth"
+import { resetPasswordSchema, type ResetPasswordInput } from "~/lib/schemas/auth"
 
 const auth = useAuthStore()
 const route = useRoute()
 const token = route.params.token as string
 
-const form = reactive({
+const form = reactive<ResetPasswordInput>({
 	email: "",
 	password: "",
 	password_confirmation: "",
+	token: "",
 })
 
 const success = ref(false)
 
 async function submit() {
+	resetPasswordSchema.parse(form)
 	const res = await auth.resetPassword({ ...form, token })
 	if (res.success) {
 		success.value = true

@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { signupSchema, type SignupInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
 
 const auth = useAuthStore()
 
-const form = reactive({
+const form = reactive<SignupInput>({
 	name: "",
 	email: "",
 	password: "",
@@ -11,6 +12,8 @@ const form = reactive({
 })
 
 async function submit() {
+	const data = signupSchema.parse(form)
+
 	const res = await auth.handleSignup(form)
 	if (res.success) {
 		navigateTo("/dashboard")
