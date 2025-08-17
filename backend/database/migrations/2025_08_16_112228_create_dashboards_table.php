@@ -13,15 +13,9 @@ return new class extends Migration
     {
         Schema::create('dashboards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                ->nullable()
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->index();
             $table->string('name');
-            $table->foreignId('current_version_id')
-                ->nullable()
-                ->constrained('versions')
-                ->cascadeOnDelete();
+            $table->foreignId('current_version_id')->nullable()->index();
             $table->timestamps();
         });
     }

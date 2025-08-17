@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('versions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('dashboard_id')
-                ->nullable()
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->foreignId('dashboard_id')->nullable()->index();
             $table->unsignedInteger('number');
             $table->timestamps();
 

@@ -13,10 +13,7 @@ return new class extends Migration
     {
         Schema::create('widgets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('version_id')
-                ->nullable()
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->foreignId('version_id')->nullable()->index();
             $table->enum('type', ['link', 'text']);
             $table->json('data');
             $table->unsignedBigInteger('sort')->default(1);
