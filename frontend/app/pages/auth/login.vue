@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { loginSchema, type LoginInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
+import { reactive, ref } from "vue"
 
 const auth = useAuthStore()
 
@@ -9,14 +10,29 @@ const form = reactive<LoginInput>({
 	password: "",
 })
 
-async function submit() {
-	const data = loginSchema.parse(form)
+const errors = reactive<{ email?: string; password?: string }>({})
 
-	const res = await auth.handleLogin(form)
-	if (res.success) {
-		navigateTo("/dashboard")
-	} else {
-		console.error(res.message)
+async function submit() {
+	errors.email = ""
+	errors.password = ""
+
+	try {
+		const data = loginSchema.parse(form)
+		const res = await auth.handleLogin(data)
+		if (res.success) {
+			navigateTo("/dashboard")
+		} else {
+			console.error(res.message)
+		}
+	} catch (err: any) {
+		if (err.name === "ZodError") {
+			err.errors.forEach((e: any) => {
+				if (e.path[0] === "email") errors.email = e.message
+				if (e.path[0] === "password") errors.password = e.message
+			})
+		} else {
+			console.error(err)
+		}
 	}
 }
 </script>
@@ -38,18 +54,18 @@ async function submit() {
 					label="Email Address"
 					name="email"
 				>
-					<label
-						for="email"
-						class="block text-sm font-medium text-gray-700 mb-1"
-						>Email Address</label
-					>
 					<UInput
-						id="email"
 						v-model="form.email"
 						type="email"
 						placeholder="Enter your email"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.email"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.email }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -68,6 +84,12 @@ async function submit() {
 						placeholder="Enter your password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.password"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.password }}
+					</p>
 				</UFormGroup>
 
 				<div class="flex items-center justify-between mb-4">

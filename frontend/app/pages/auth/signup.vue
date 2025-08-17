@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { signupSchema, type SignupInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
+import { reactive, ref } from "vue"
+import { z } from "zod"
 
 const auth = useAuthStore()
 
@@ -11,14 +13,40 @@ const form = reactive<SignupInput>({
 	password_confirmation: "",
 })
 
-async function submit() {
-	const data = signupSchema.parse(form)
+const errors = reactive<{ name?: string; email?: string; password?: string; password_confirmation?: string }>({})
 
-	const res = await auth.handleSignup(form)
-	if (res.success) {
-		navigateTo("/dashboard")
-	} else {
-		console.error(res.message)
+async function submit() {
+	Object.keys(errors).forEach((key) => (errors[key as keyof typeof errors] = ""))
+
+	try {
+		const data = z
+			.object({
+				name: z.string().min(1, "Name is required"),
+				email: z.string().email("Invalid email address"),
+				password: z.string().min(6, "Password must be at least 6 characters"),
+				password_confirmation: z.string().min(6, "Passwords must match"),
+			})
+			.refine((data) => data.password === data.password_confirmation, {
+				message: "Passwords do not match",
+				path: ["password_confirmation"],
+			})
+			.parse(form)
+
+		const res = await auth.handleSignup(data)
+		if (res.success) {
+			navigateTo("/dashboard")
+		} else {
+			console.error(res.message)
+		}
+	} catch (err: any) {
+		if (err.name === "ZodError") {
+			err.errors.forEach((e: any) => {
+				const key = e.path[0] as keyof typeof errors
+				errors[key] = e.message
+			})
+		} else {
+			console.error(err)
+		}
 	}
 }
 </script>
@@ -51,6 +79,12 @@ async function submit() {
 						placeholder="Enter your name"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.name"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.name }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -69,6 +103,12 @@ async function submit() {
 						placeholder="Enter your email"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.email"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.email }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -87,6 +127,12 @@ async function submit() {
 						placeholder="Enter password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.password"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.password }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -105,6 +151,12 @@ async function submit() {
 						placeholder="Confirm password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.password_confirmation"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.password_confirmation }}
+					</p>
 				</UFormGroup>
 
 				<UButton

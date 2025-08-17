@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { changePasswordSchema, type ChangePasswordInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
+import { ref, reactive } from "vue"
 
 definePageMeta({
 	layout: "dashboard",
@@ -14,18 +15,35 @@ const form = reactive<ChangePasswordInput>({
 	new_password_confirmation: "",
 })
 
+const errors = reactive<{ [key: string]: string }>({})
 const success = ref(false)
 
 async function submit() {
-	const data = changePasswordSchema.parse(form)
-	const res = await auth.changePassword(form)
-	if (res.success) {
-		success.value = true
-		form.current_password = ""
-		form.new_password = ""
-		form.new_password_confirmation = ""
-	} else {
-		console.error(res.message)
+	errors.current_password = ""
+	errors.new_password = ""
+	errors.new_password_confirmation = ""
+
+	try {
+		const data = changePasswordSchema.parse(form)
+		const res = await auth.changePassword(data)
+		if (res.success) {
+			success.value = true
+			form.current_password = ""
+			form.new_password = ""
+			form.new_password_confirmation = ""
+		} else {
+			console.error(res.message)
+		}
+	} catch (err: any) {
+		if (err.name === "ZodError") {
+			err.errors.forEach((e: any) => {
+				if (e.path && e.path.length > 0) {
+					errors[e.path[0]] = e.message
+				}
+			})
+		} else {
+			console.error(err)
+		}
 	}
 }
 </script>
@@ -60,6 +78,12 @@ async function submit() {
 						placeholder="Enter current password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.current_password"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.current_password }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -78,6 +102,12 @@ async function submit() {
 						placeholder="Enter new password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.new_password"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.new_password }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -96,6 +126,12 @@ async function submit() {
 						placeholder="Confirm new password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.new_password_confirmation"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.new_password_confirmation }}
+					</p>
 				</UFormGroup>
 
 				<UButton
@@ -103,8 +139,9 @@ async function submit() {
 					block
 					:loading="auth.loading"
 					class="mt-2"
-					>Change Password</UButton
 				>
+					Change Password
+				</UButton>
 			</UForm>
 
 			<div

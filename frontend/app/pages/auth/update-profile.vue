@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { updateProfileSchema, type UpdateProfileInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
+import { reactive } from "vue"
+import { z } from "zod"
 
 definePageMeta({
 	layout: "dashboard",
@@ -13,13 +15,28 @@ const form = reactive<UpdateProfileInput>({
 	email: auth.user?.email || "",
 })
 
+const errors = reactive<{ name?: string; email?: string }>({})
+
 async function updateProfile() {
-	const data = updateProfileSchema.parse(form)
-	const res = await auth.handleUpdateProfile(data)
-	if (res.success) {
-		console.log("Profile updated")
-	} else {
-		console.error(res.message)
+	Object.keys(errors).forEach((key) => (errors[key as keyof typeof errors] = ""))
+
+	try {
+		const data = updateProfileSchema.parse(form)
+		const res = await auth.handleUpdateProfile(data)
+		if (res.success) {
+			console.log("Profile updated")
+		} else {
+			console.error(res.message)
+		}
+	} catch (err: any) {
+		if (err.name === "ZodError") {
+			err.errors.forEach((e: any) => {
+				const key = e.path[0] as keyof typeof errors
+				errors[key] = e.message
+			})
+		} else {
+			console.error(err)
+		}
 	}
 }
 </script>
@@ -52,6 +69,12 @@ async function updateProfile() {
 						placeholder="Enter your name"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.name"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.name }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -70,6 +93,12 @@ async function updateProfile() {
 						placeholder="Enter your email"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.email"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.email }}
+					</p>
 				</UFormGroup>
 
 				<UButton
@@ -77,9 +106,8 @@ async function updateProfile() {
 					block
 					:loading="auth.loading"
 					class="mt-2"
+					>Update Profile</UButton
 				>
-					Update Profile
-				</UButton>
 			</UForm>
 		</UCard>
 	</UContainer>

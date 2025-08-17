@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { forgotPasswordSchema, type ForgotPasswordInput } from "~/lib/schemas/auth"
 import { useAuthStore } from "~/stores/auth"
+import { reactive, ref } from "vue"
 
 const auth = useAuthStore()
 
@@ -8,16 +9,31 @@ const form = reactive<ForgotPasswordInput>({
 	email: "",
 })
 
+const errors = reactive<{ email?: string }>({})
 const success = ref(false)
 
 async function submit() {
-	const data = forgotPasswordSchema.parse(form)
+	errors.email = ""
 
-	const res = await auth.forgotPassword(form.email)
-	if (res.success) {
-		success.value = true
-	} else {
-		console.error(res.message)
+	try {
+		const data = forgotPasswordSchema.parse(form)
+		const res = await auth.forgotPassword(data.email)
+		if (res.success) {
+			success.value = true
+			form.email = ""
+		} else {
+			console.error(res.message)
+		}
+	} catch (err: any) {
+		if (err.name === "ZodError") {
+			err.errors.forEach((e: any) => {
+				if (e.path && e.path[0] === "email") {
+					errors.email = e.message
+				}
+			})
+		} else {
+			console.error(err)
+		}
 	}
 }
 </script>
@@ -52,6 +68,12 @@ async function submit() {
 						placeholder="Enter your email"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.email"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.email }}
+					</p>
 				</UFormGroup>
 
 				<UButton
@@ -59,8 +81,9 @@ async function submit() {
 					block
 					:loading="auth.loading"
 					class="mt-2"
-					>Send Reset Link</UButton
 				>
+					Send Reset Link
+				</UButton>
 			</UForm>
 
 			<div

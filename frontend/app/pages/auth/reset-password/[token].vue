@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "~/stores/auth"
 import { resetPasswordSchema, type ResetPasswordInput } from "~/lib/schemas/auth"
+import { reactive, ref } from "vue"
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -13,15 +14,37 @@ const form = reactive<ResetPasswordInput>({
 	token: "",
 })
 
+const errors = reactive<{ [key: string]: string }>({})
 const success = ref(false)
 
 async function submit() {
-	resetPasswordSchema.parse(form)
-	const res = await auth.resetPassword({ ...form, token })
-	if (res.success) {
-		success.value = true
-	} else {
-		console.error(res.message)
+	errors.email = ""
+	errors.password = ""
+	errors.password_confirmation = ""
+	errors.token = ""
+
+	try {
+		const data = resetPasswordSchema.parse({ ...form, token })
+		const res = await auth.resetPassword(data)
+		if (res.success) {
+			success.value = true
+			form.email = ""
+			form.password = ""
+			form.password_confirmation = ""
+			form.token = ""
+		} else {
+			console.error(res.message)
+		}
+	} catch (err: any) {
+		if (err.name === "ZodError") {
+			err.errors.forEach((e: any) => {
+				if (e.path && e.path.length > 0) {
+					errors[e.path[0]] = e.message
+				}
+			})
+		} else {
+			console.error(err)
+		}
 	}
 }
 </script>
@@ -56,6 +79,12 @@ async function submit() {
 						placeholder="Enter your email"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.email"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.email }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -74,6 +103,12 @@ async function submit() {
 						placeholder="Enter new password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.password"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.password }}
+					</p>
 				</UFormGroup>
 
 				<UFormGroup
@@ -92,6 +127,12 @@ async function submit() {
 						placeholder="Confirm password"
 						class="w-full"
 					/>
+					<p
+						v-if="errors.password_confirmation"
+						class="text-red-500 text-sm mt-1"
+					>
+						{{ errors.password_confirmation }}
+					</p>
 				</UFormGroup>
 
 				<UButton
